@@ -21,11 +21,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     await cargarProductos();
     mostrarProductos();
     actualizarCarrito();
-    
+   
     // TODO: Agregar event listeners para los botones
     // PISTA: checkoutBtn necesita un evento 'click' que llame a una función para procesar el pago
+    checkoutBtn.addEventListener('click', procederPago)
     // PISTA: clearCartBtn necesita un evento 'click' que llame a mostrarModalVaciarCarrito()
+    clearCartBtn.addEventListener('click', mostrarModalVaciarCarrito);
     // PISTA: loginBtn necesita un evento 'click' que llame a mostrarModalLogin()
+    loginBtn.addEventListener('click', mostrarModalLogin);
     // NOTA: Las funciones de modales ya están implementadas al final del archivo
 });
 
@@ -77,8 +80,23 @@ function mostrarProductos() {
 function agregarAlCarrito(productoId) {
     // PISTA: Necesitas buscar el producto en el array 'productos' usando el productoId
     // PISTA: Verifica si el producto ya existe en el carrito
+const resultado = productos.find( p => p.id === productoId);
+console.log(resultado);
+
+const item = carrito.find (c => c.id === productoId)
+if (item){
+    item.cantidad++
+}else{
+    carrito.push(
+        {
+            ...resultado,
+            cantidad: 1
+        }
+    )
+}
     // PISTA: Si existe, incrementa la cantidad; si no existe, agrégalo con cantidad 1
     // PISTA: No olvides llamar actualizarCarrito() al final
+actualizarCarrito()
     // PISTA: Puedes usar mostrarMensaje() para notificar al usuario
 }
 
@@ -86,8 +104,9 @@ function agregarAlCarrito(productoId) {
 function actualizarCarrito() {
     // TODO: Actualizar contador del carrito en el header
     // PISTA: Calcula el total de items sumando todas las cantidades
+const totalItems = carrito.reduce((total, item) => total + item.cantidad,0);
     // PISTA: Actualiza el textContent del elemento cartCount
-    
+cartCount.textContent = totalItems;
     // TODO: Actualizar el total del precio
     actualizarTotal();
     
@@ -99,10 +118,13 @@ function actualizarCarrito() {
     // PISTA: Si hay productos, hacer lo contrario
     
     if (carrito.length === 0) {
+        cartContainer.style.display = 'none';
+        emptyCart.style.display = 'block';
         // TODO: Implementar lógica para carrito vacío
         return;
     }
-    
+     cartContainer.style.display = 'block';
+    emptyCart.style.display = 'none';
     // TODO: Mostrar items del carrito
     // PISTA: Recorre el array carrito con forEach
     // PISTA: Para cada item, crea un div con clase 'cart-item'
@@ -137,10 +159,19 @@ function actualizarCarrito() {
 
 // TODO: Función para cambiar la cantidad de un producto
 function cambiarCantidad(productoId, cambio) {
+const it = carrito.find (d => d.id === productoId)
+if (it){
+    it.cantidad += cambio;
+}
+if (it.cantidad <= 0){
+eliminarDelCarrito(it.cantidad);
+}
+
     // PISTA: Busca el item en el carrito usando find()
     // PISTA: Suma el cambio a la cantidad actual
     // PISTA: Si la cantidad queda <= 0, elimina el producto del carrito
     // PISTA: Llama a actualizarCarrito() para refrescar la vista
+actualizarCarrito()
 }
 
 // TODO: Función para actualizar cantidad directamente desde el input
@@ -152,6 +183,10 @@ function actualizarCantidad(productoId, nuevaCantidad) {
 
 // TODO: Función para eliminar un producto del carrito
 function eliminarDelCarrito(productoId) {
+   const result = carrito.filter((c) => c.id != productoId);
+   carrito = result;
+   actualizarCarrito()
+
     // PISTA: Usa filter() para crear un nuevo array sin el producto a eliminar
     // PISTA: Actualiza el array carrito con el resultado del filter
     // PISTA: Llama a actualizarCarrito()
@@ -168,6 +203,7 @@ function actualizarTotal() {
 
 // TODO: Función para proceder al pago (básica)
 function procederPago() {
+    alert('hola');
     // PISTA: Verifica que el carrito no esté vacío
     // PISTA: Puedes usar mostrarModal() para mostrar información de la compra
     // PISTA: O usar alert() para una versión más simple
@@ -177,6 +213,7 @@ function procederPago() {
 
 // TODO: Función para vaciar todo el carrito
 function vaciarCarrito() {
+    
     // PISTA: Asigna un array vacío a la variable carrito
     // PISTA: Llama a actualizarCarrito() para refrescar la vista
 }
