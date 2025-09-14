@@ -177,6 +177,16 @@ actualizarCarrito()
 // TODO: Función para actualizar cantidad directamente desde el input
 function actualizarCantidad(productoId, nuevaCantidad) {
     // PISTA: Convierte nuevaCantidad a entero con parseInt()
+    nuevaCantidad = parseInt(nuevaCantidad);
+const encontre = carrito.find(k => k.id === productoId);
+
+if (nuevaCantidad <= 0) {
+    carrito = carrito.filter(h => h.id !== productoId);
+} else { 
+    encontre.cantidad = nuevaCantidad;
+}
+
+actualizarCarrito();
     // PISTA: Busca el item y actualiza su cantidad
     // PISTA: Si la cantidad es <= 0, elimina el producto
 }
@@ -197,13 +207,26 @@ function actualizarTotal() {
     // TODO: Calcular el total sumando precio * cantidad de cada item
     // PISTA: Usa reduce() para sumar todos los subtotales
     // PISTA: Actualiza el textContent de totalAmount con el resultado
-    const total = 0; // Reemplaza esto con tu cálculo
+    // Reemplaza esto con tu cálculo
+    // Calcula el total multiplicando precio * cantidad y sumando todo
+    const total = carrito.reduce((acumulador, item) => {
+        return acumulador + (item.precio * item.cantidad);
+    }, 0);
+
+    // Muestra el total con dos decimales
     totalAmount.textContent = total.toFixed(2);
 }
 
 // TODO: Función para proceder al pago (básica)
 function procederPago() {
-    alert('hola');
+    if (carrito.length > 0){
+        alert("buenas")
+        carrito = []
+        actualizarCarrito()
+    }
+    else{
+        alert("Esto esta vacio")
+    }
     // PISTA: Verifica que el carrito no esté vacío
     // PISTA: Puedes usar mostrarModal() para mostrar información de la compra
     // PISTA: O usar alert() para una versión más simple
@@ -213,9 +236,10 @@ function procederPago() {
 
 // TODO: Función para vaciar todo el carrito
 function vaciarCarrito() {
-    
+    carrito = []
     // PISTA: Asigna un array vacío a la variable carrito
     // PISTA: Llama a actualizarCarrito() para refrescar la vista
+    actualizarCarrito()
 }
 
 /* 
