@@ -321,7 +321,7 @@ function mostrarModal({ icono, titulo, mensaje, textoConfirmar, textoCancel, onC
             ${botones}
         </div>
     `;
-    
+   
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
     
@@ -336,8 +336,9 @@ function mostrarModal({ icono, titulo, mensaje, textoConfirmar, textoCancel, onC
     }
     
     btnConfirm.addEventListener('click', () => {
-        if (onConfirmar) onConfirmar();
+        if (onConfirmar)onConfirmar();
         cerrarModal(overlay);
+        
     });
     
     // Cerrar al hacer click en el overlay (solo si no es modal de información)
@@ -439,9 +440,31 @@ function mostrarModalLogin() {
     mostrarModal({
         icono: '👤',
         titulo: 'Iniciar Sesión',
-        mensaje: 'Funcionalidad de login en desarrollo.\n\nPronto podrás:\n• Guardar tu carrito\n• Ver historial de compras\n• Gestionar tus datos\n• Recibir ofertas exclusivas',
+        mensaje:`
+        <form id="login-form" style="display">
+        <input type="text" placeholder="Usuario" required>
+        <input type="password" placeholder="Contraseña" required>
+        </form>`,
         textoConfirmar: 'Entendido',
         textoCancel: '',
-        onConfirmar: null
+        onConfirmar: () => {
+            const form = document.getElementById("login-form");
+            const email = form.elements[0].value;
+            const password = form.elements[1].value;
+            loginUsuario({email,password});
+        }
     });
 }
+
+ async function loginUsuario({email, password}){
+        const response = await fetch ('https://xp8qpg8w-3000.brs.devtunnels.ms/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({email, password})
+        });
+        const data = await response.json();
+}
+
+    
