@@ -35,8 +35,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 // Función para cargar productos desde JSON
 async function cargarProductos() {
     try {
-        const response = await fetch('./productos.json');
+        const response = await fetch('https://xp8qpg8w-3000.brs.devtunnels.ms/products');
         productos = await response.json();
+        console.log(productos)
     } catch (error) {
         console.error('Error cargando productos:', error);
         // Productos de respaldo en caso de error
@@ -56,17 +57,17 @@ async function cargarProductos() {
 function mostrarProductos() {
     productosContainer.innerHTML = '';
     
-    productos.forEach(producto => {
+    productos.products.forEach(products => {
         const productoCard = document.createElement('div');
         productoCard.className = 'product-card';
         
         productoCard.innerHTML = `
-            <div class="product-image">${crearImagenProducto(producto)}</div>
+            <div class="product-image">${crearImagenProducto(products)}</div>
             <div class="product-info">
-                <h3 class="product-name">${producto.nombre}</h3>
-                <p class="product-description">${producto.descripcion}</p>
-                <div class="product-price">$${producto.precio.toFixed(2)}</div>
-                <button class="add-to-cart-btn" onclick="agregarAlCarrito(${producto.id})">
+                <h3 class="product-name">${products.name}</h3>
+                <p class="product-description">${products.description}</p>
+                <div class="product-price">$${products.price.toFixed(2)}</div>
+                <button class="add-to-cart-btn" onclick="agregarAlCarrito(${products.id})">
                     Agregar al Carrito
                 </button>
             </div>
@@ -80,9 +81,7 @@ function mostrarProductos() {
 function agregarAlCarrito(productoId) {
     // PISTA: Necesitas buscar el producto en el array 'productos' usando el productoId
     // PISTA: Verifica si el producto ya existe en el carrito
-const resultado = productos.find( p => p.id === productoId);
-console.log(resultado);
-
+const resultado = productos.products.find( p => p.id === productoId);
 const item = carrito.find (c => c.id === productoId)
 if (item){
     item.cantidad++
@@ -97,6 +96,7 @@ if (item){
     // PISTA: Si existe, incrementa la cantidad; si no existe, agrégalo con cantidad 1
     // PISTA: No olvides llamar actualizarCarrito() al final
 actualizarCarrito()
+mostrarMensaje('Se agrego al carrito')
     // PISTA: Puedes usar mostrarMensaje() para notificar al usuario
 }
 
@@ -137,8 +137,8 @@ cartCount.textContent = totalItems;
             <div class="cart-item-header">
                 <div class="cart-item-image">${crearImagenCarrito(item)}</div>
                 <div class="cart-item-info">
-                    <h4>${item.nombre}</h4>
-                    <div class="cart-item-price">$${item.precio.toFixed(2)}</div>
+                    <h4>${item.name}</h4>
+                    <div class="cart-item-price">$${item.price.toFixed(2)}</div>
                 </div>
             </div>
             <div class="quantity-controls">
@@ -149,7 +149,7 @@ cartCount.textContent = totalItems;
                 <button class="remove-btn" onclick="eliminarDelCarrito(${item.id})">Eliminar</button>
             </div>
             <div class="item-total">
-                Total: $${(item.precio * item.cantidad).toFixed(2)}
+                Total: $${(item.price * item.cantidad).toFixed(2)}
             </div>
         `;
         
@@ -159,14 +159,15 @@ cartCount.textContent = totalItems;
 
 // TODO: Función para cambiar la cantidad de un producto
 function cambiarCantidad(productoId, cambio) {
-const it = carrito.find (d => d.id === productoId)
+let it = carrito.find (d => d.id === productoId)
 if (it){
     it.cantidad += cambio;
+    if (it.cantidad <= 0){
+    eliminarDelCarrito(it.id);
+    }else{
+        actualizarCarrito();
+    }
 }
-if (it.cantidad <= 0){
-eliminarDelCarrito(it.cantidad);
-}
-
     // PISTA: Busca el item en el carrito usando find()
     // PISTA: Suma el cambio a la cantidad actual
     // PISTA: Si la cantidad queda <= 0, elimina el producto del carrito
@@ -210,7 +211,7 @@ function actualizarTotal() {
     // Reemplaza esto con tu cálculo
     // Calcula el total multiplicando precio * cantidad y sumando todo
     const total = carrito.reduce((acumulador, item) => {
-        return acumulador + (item.precio * item.cantidad);
+        return acumulador + (item.price * item.cantidad);
     }, 0);
 
     // Muestra el total con dos decimales
@@ -220,13 +221,20 @@ function actualizarTotal() {
 // TODO: Función para proceder al pago (básica)
 function procederPago() {
     if (carrito.length > 0){
-        alert("buenas")
-        carrito = []
-        actualizarCarrito()
+        mostrarModal({
+        icono: '',
+        titulo: 'Confirmar compra',
+        mensaje: $total,
+        textoConfirmar: 'Sí, pagar',
+        textoCancel: 'Cancelar',
+        onConfirmar: () => {
+            carrito= [];
+            actualizarCarrito();
+            mostrarMensaje("Compro")
+        }
+    });
     }
-    else{
-        alert("Esto esta vacio")
-    }
+    
     // PISTA: Verifica que el carrito no esté vacío
     // PISTA: Puedes usar mostrarModal() para mostrar información de la compra
     // PISTA: O usar alert() para una versión más simple
@@ -296,7 +304,7 @@ function mostrarFallbackCarrito(imgElement, fallback) {
 }
 
 // Función para crear y mostrar modal personalizado
-function mostrarModal({ icono, titulo, mensaje, textoConfirmar, textoCancel, onConfirmar }) {
+function mostrarModal({ icono, titulo, mensaje, textoConfirmar, textoCancel, onConfirmar}) {
     // Crear overlay
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
@@ -349,7 +357,7 @@ function mostrarModal({ icono, titulo, mensaje, textoConfirmar, textoCancel, onC
             }
         });
     }
-    
+    document.body.appendChild(overlay);
     // Cerrar con Escape
     const handleEscape = (e) => {
         if (e.key === 'Escape') {
@@ -431,7 +439,7 @@ function mostrarModalVaciarCarrito() {
         mensaje: 'Esta acción eliminará todos los productos del carrito. No se puede deshacer.',
         textoConfirmar: 'Sí, vaciar',
         textoCancel: 'Cancelar',
-        onConfirmar: vaciarCarrito
+        onConfirmar: vaciarCarrito,
     });
 }
 
@@ -441,7 +449,7 @@ function mostrarModalLogin() {
         icono: '👤',
         titulo: 'Iniciar Sesión',
         mensaje:`
-        <form id="login-form" style="display">
+        <form id="login-form" style="display:block">
         <input type="text" placeholder="Usuario" required>
         <input type="password" placeholder="Contraseña" required>
         </form>`,
@@ -452,7 +460,9 @@ function mostrarModalLogin() {
             const email = form.elements[0].value;
             const password = form.elements[1].value;
             loginUsuario({email,password});
+            mostrarMensaje("Sesion iniciada")
         }
+         
     });
 }
 
@@ -464,7 +474,8 @@ function mostrarModalLogin() {
             },
             body: JSON.stringify({email, password})
         });
-        const data = await response.json();
+    const data = await response.json();
+    localStorage.setItem('Token', JSON.stringify(data.token))
 }
 
-    
+
